@@ -30,6 +30,7 @@ wsServer.on("request", function(req) {
         for (let i = 0; i < connections.length; i++) {
             connections[i].sendUTF(message.utf8Data);
         }
+        console.log(message);
     });
 
     connection.on("close", function(reasonCode, description) {
@@ -38,5 +39,9 @@ wsServer.on("request", function(req) {
         if (index !== -1) {
             connections.splice(index, 1);
         }
+    });
+
+    connection.on("open", function(reasonCode, description) {
+        console.log(connections);
     });
 });
