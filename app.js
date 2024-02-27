@@ -1,6 +1,6 @@
 // Include dependencies:
-const websocket = require("websocket").server;
 const http = require("http");
+const socketIO = require("socket.io");
 
 // Local variables:
 const port = process.env.PORT || 9600; // Use the environment variable for port
@@ -12,31 +12,19 @@ server.listen(port, function() {
     console.log("Server listening on port " + port);
 });
 
-// Initialize the WebSocket server:
-const wsServer = new websocket({
-    httpServer: server,
-});
+// Initialize the Socket.IO server:
+const io = socketIO(server);
 
-const connections = []; // Store active connections
+// Handle incoming Socket.IO connections:
+io.on('connection', function(socket) {
+    console.log('A user connected');
 
-// Handle incoming WebSocket requests:
-wsServer.on("request", function(req) {
-    const connection = req.accept(null, req.origin);
-
-    connections.push(connection);
-
-    connection.on("message", function(message) {
+    socket.on('message', function(data) {
         // Broadcast the received message to all connected clients:
-        for (let i = 0; i < connections.length; i++) {
-            connections[i].sendUTF(message.utf8Data);
-        }
+        io.emit('message', data);
     });
 
-    connection.on("close", function(reasonCode, description) {
-        // Remove closed connections from the list:
-        const index = connections.indexOf(connection);
-        if (index !== -1) {
-            connections.splice(index, 1);
-        }
+    socket.on('disconnect', function() {
+        console.log('A user disconnected');
     });
 });
