@@ -39,9 +39,6 @@ wsServer.on("request", function(req) {
         if (index !== -1) {
             connections.splice(index, 1);
         }
-    });
-
-    connection.on("open", function(reasonCode, description) {
-        console.log(connections);
+        console.log(message);
     });
 });
