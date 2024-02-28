@@ -30,19 +30,19 @@ wsServer.on('request', function(req) {
         const isMessageValid = await checkMessage(msg); // Check if the message contains banned words
 
         if (isMessageValid) {
+            console.log(message);
             // Broadcast the received message to all connected clients:
             for (let i = 0; i < connections.length; i++) {
                 connections[i].sendUTF(msg);
             }
         } else {
             // Handle the case when a banned word is found
-            // You can customize this part as needed
             console.log('Banned word found:', msg);
             // Send a notification to the client via WebSocket
             const notification = {
                 type: 'badword',
                 username: "Hypackel Chat Moderation",
-                message: 'Someone a bad word, please use polite language!',
+                message: 'Someone a bad word, please always use polite language!',
             };
             for (let i = 0; i < connections.length; i++) {
                 connections[i].sendUTF(JSON.stringify(notification));
