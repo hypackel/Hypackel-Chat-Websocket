@@ -1,6 +1,6 @@
-// Include dependencies:
-const http = require("http");
-const socketIO = require("socket.io");
+const fs = require('fs');
+const http = require('http');
+const WebSocket = require('websocket').server;
 
 // Local variables:
 const port = process.env.PORT || 9600; // Use the environment variable for port
@@ -12,19 +12,67 @@ server.listen(port, function() {
     console.log("Server listening on port " + port);
 });
 
-// Initialize the Socket.IO server:
-const io = socketIO(server);
+// Initialize the WebSocket server:
+const wsServer = new WebSocket({
+    httpServer: server,
+});
 
-// Handle incoming Socket.IO connections:
-io.on('connection', function(socket) {
-    console.log('A user connected');
+const connections = []; // Store active connections
 
-    socket.on('message', function(data) {
-        // Broadcast the received message to all connected clients:
-        io.emit('message', data);
+// Handle incoming WebSocket requests:
+wsServer.on('request', function(req) {
+    const connection = req.accept(null, req.origin);
+
+    connections.push(connection);
+
+    connection.on('message', async function(message) {
+        const msg = message.utf8Data;
+        const isMessageValid = await checkMessage(msg); // Check if the message contains banned words
+
+        if (isMessageValid) {
+            // Broadcast the received message to all connected clients:
+            for (let i = 0; i < connections.length; i++) {
+                connections[i].sendUTF(msg);
+            }
+        } else {
+            // Handle the case when a banned word is found
+            // You can customize this part as needed
+            console.log('Banned word found:', msg);
+            // Send a notification to the client via WebSocket
+            const notification = {
+                type: 'badword',
+                username: "Moderation",
+                message: 'Someone a bad word, please use polite language!',
+            };
+            connection.send(JSON.stringify(notification));
+        }
     });
 
-    socket.on('disconnect', function() {
-        console.log('A user disconnected');
+    connection.on('close', function(reasonCode, description) {
+        // Remove closed connections from the list:
+        const index = connections.indexOf(connection);
+        if (index !== -1) {
+            connections.splice(index, 1);
+        }
     });
 });
+
+async function checkMessage(message) {
+    try {
+        // Read the banned words from the text file
+        const bannedWords = fs.readFileSync('banned-words.txt', 'utf8').split('\n');
+
+        // Check if the message contains any banned words
+        for (const word of bannedWords) {
+            if (message.includes(word)) {
+                return false;
+            }
+        }
+
+        // Message does not contain banned words, return true
+        return true;
+    } catch (error) {
+        console.error('Error checking message:', error);
+        return false;
+    }
+}
