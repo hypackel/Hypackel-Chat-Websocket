@@ -15,40 +15,29 @@ server.listen(port, function() {
 // Initialize the WebSocket server:
 const wsServer = new websocket({
     httpServer: server,
-    // Restrict WebSocket requests to localhost and hypacker.github.io:
-    // You can add more allowed origins as needed
-    autoAcceptConnections: false // Disable auto-accepting connections
 });
 
 const connections = []; // Store active connections
 
 // Handle incoming WebSocket requests:
 wsServer.on("request", function(req) {
-    // Check the origin of the request:
-    const origin = req.origin || req.httpRequest.headers.origin;
-    // Check if the origin is allowed
-    if (origin === "http://localhost" || origin === "https://hypacker.github.io") {
-        const connection = req.accept(null, origin);
-        connections.push(connection);
+    const connection = req.accept(null, req.origin);
 
-        connection.on("message", function(message) {
-            // Broadcast the received message to all connected clients:
-            for (let i = 0; i < connections.length; i++) {
-                connections[i].sendUTF(message.utf8Data);
-            }
-            console.log(message);
-        });
+    connections.push(connection);
 
-        connection.on("close", function(reasonCode, description) {
-            // Remove closed connections from the list:
-            const index = connections.indexOf(connection);
-            if (index !== -1) {
-                connections.splice(index, 1);
-            }
-        });
-    } else {
-        // Reject connections from other origins:
-        req.reject(403, "Forbidden");
-        console.log("Connection from " + origin + " rejected.");
-    }
+    connection.on("message", function(message) {
+        // Broadcast the received message to all connected clients:
+        for (let i = 0; i < connections.length; i++) {
+            connections[i].sendUTF(message.utf8Data);
+        }
+        console.log(message);
+    });
+
+    connection.on("close", function(reasonCode, description) {
+        // Remove closed connections from the list:
+        const index = connections.indexOf(connection);
+        if (index !== -1) {
+            connections.splice(index, 1);
+        }
+    });
 });
