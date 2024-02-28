@@ -41,10 +41,12 @@ wsServer.on('request', function(req) {
             // Send a notification to the client via WebSocket
             const notification = {
                 type: 'badword',
-                username: "Moderation",
+                username: "Hypackel Chat Moderation",
                 message: 'Someone a bad word, please use polite language!',
             };
-            connection.send(JSON.stringify(notification));
+            for (let i = 0; i < connections.length; i++) {
+                connections[i].sendUTF(JSON.stringify(notification));
+            }
         }
     });
 
@@ -54,6 +56,12 @@ wsServer.on('request', function(req) {
         if (index !== -1) {
             connections.splice(index, 1);
         }
+    });
+    connection.on('open', function(reasonCode, description) {
+        // Remove closed connections from the list:
+        const index = connections.indexOf(connection);
+        console.log(connection);
+        console.log(connections);
     });
 });
 
