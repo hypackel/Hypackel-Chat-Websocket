@@ -6,7 +6,7 @@
   "name": "hypackel-chat-websocket",
   "description": "websocket for hypackel beta games chat",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "hello.js",
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
