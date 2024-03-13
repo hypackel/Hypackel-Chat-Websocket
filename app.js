@@ -43,11 +43,6 @@ wsServer.on('request', function(req) {
             // Handle the case when a banned word is found
             console.log('Banned word found:', msg);
             // Send a notification to the client via WebSocket
-            const notification = {
-                type: 'badword',
-                username: "Hypackel Chat Moderation",
-                message: 'You said a bad word, please always use polite language!',
-            };
             connection.sendUTF(JSON.stringify(notification));
         }
     });
