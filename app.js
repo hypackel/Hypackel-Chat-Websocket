@@ -31,18 +31,9 @@ wsServer.on('request', function(req) {
 
     connection.on('message', async function(message) {
         const msg = message.utf8Data;
-        const isMessageValid = await checkMessage(msg); // Check if the message contains banned words
 
-        if (isMessageValid) {
-            console.log(message);
-            // Broadcast the received message to all connected clients:
-            for (let i = 0; i < connections.length; i++) {
-                connections[i].sendUTF(msg);
-            }
-        } else {
-            // Handle the case when a banned word is found
-            console.log('Banned word found:', msg);
-            // Send a notification to the client via WebSocket
+        for (let i = 0; i < connections.length; i++) {
+            connections[i].sendUTF(msg);
         }
     });
 
@@ -60,23 +51,3 @@ wsServer.on('request', function(req) {
         console.log(connections);
     });
 });
-
-async function checkMessage(message) {
-    try {
-        // Read the banned words from the text file
-        const bannedWords = fs.readFileSync('banned-words.txt', 'utf8').split('\n');
-
-        // Check if the message contains any banned words
-        for (const word of bannedWords) {
-            if (message.includes(word)) {
-                return false;
-            }
-        }
-
-        // Message does not contain banned words, return true
-        return true;
-    } catch (error) {
-        console.error('Error checking message:', error);
-        return false;
-    }
-}
