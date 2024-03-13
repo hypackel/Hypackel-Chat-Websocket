@@ -15,6 +15,10 @@ server.listen(port, function() {
 // Initialize the WebSocket server:
 const wsServer = new WebSocket({
     httpServer: server,
+    autoAcceptConnections: false, // Disable auto-accept to handle compression
+    maxReceivedFrameSize: 4096 * 4096, // Set maximum frame size (adjust as needed)
+    maxReceivedMessageSize: 4096 * 4096, // Set maximum message size (adjust as needed)
+    perMessageDeflate: true, // Enable permessage-deflate extension
 });
 
 const connections = []; // Store active connections
@@ -42,11 +46,9 @@ wsServer.on('request', function(req) {
             const notification = {
                 type: 'badword',
                 username: "Hypackel Chat Moderation",
-                message: 'Someone a bad word, please always use polite language!',
+                message: 'You said a bad word, please always use polite language!',
             };
-            for (let i = 0; i < connections.length; i++) {
-                connections[i].sendUTF(JSON.stringify(notification));
-            }
+            connection.sendUTF(JSON.stringify(notification));
         }
     });
 
